@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPT 图片字体替换工具</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f5f5c'/%3E%3Crect x='6' y='6' width='20' height='14' rx='2' fill='%23f5f4f1'/%3E%3Cpath d='M9 24h8M9 27h5' stroke='%23e0a84a' stroke-width='1.6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#1c1f23;
+  --ink-2:#4d545c;
+  --ink-3:#8a9099;
+  --line:#e2ded6;
+  --line-2:#efece6;
+  --paper:#f5f4f1;
+  --card:#ffffff;
+  --accent:#0f5f5c;
+  --accent-soft:#e6f0ef;
+  --warn:#b45309;
+  --danger:#b0322b;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Source Han Sans CN","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:20px 14px 40px;
+}
+.wrap{max-width:880px;margin:0 auto}
+
+/* ---------- 头部 ---------- */
+.head{margin-bottom:20px}
+.head h1{
+  font-size:24px;line-height:1.3;margin:0 0 6px;letter-spacing:-.2px;font-weight:650;
+}
+.head p{margin:0;color:var(--ink-2);font-size:14px;max-width:60ch}
+.head .badge{
+  display:inline-block;font-size:12px;color:var(--accent);background:var(--accent-soft);
+  border-radius:4px;padding:2px 7px;margin-bottom:8px;letter-spacing:.3px;
+}
+
+/* ---------- 卡片 / 步骤 ---------- */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;margin-bottom:14px;
+}
+.card-hd{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.num{
+  flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+.card-hd h2{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
+.card-hd .hint{margin-left:auto;font-size:12px;color:var(--ink-3)}
+
+/* ---------- 拖放区 ---------- */
+.drop{
+  border:1.5px dashed #cfc9be;border-radius:var(--radius);background:#fbfaf8;
+  padding:26px 16px;text-align:center;cursor:pointer;transition:.15s;
+}
+.drop:hover,.drop.over{border-color:var(--accent);background:#f2f7f6}
+.drop .ic{font-size:0;margin-bottom:8px}
+.drop .ic svg{width:34px;height:34px;stroke:var(--accent);fill:none;stroke-width:1.8}
+.drop strong{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.drop span{font-size:13px;color:var(--ink-2)}
+.drop em{font-style:normal;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- 文件信息 ---------- */
+.fileinfo{display:none;align-items:center;gap:12px;margin-top:12px;padding:11px 13px;
+  background:#f7f9f8;border:1px solid var(--line-2);border-radius:8px}
+.fileinfo.on{display:flex}
+.fileinfo .fi-n{font-size:13px;font-weight:600;word-break:break-all;line-height:1.4}
+.fileinfo .fi-m{font-size:12px;color:var(--ink-3);margin-top:2px}
+.fileinfo .x{margin-left:auto;flex:0 0 auto}
+
+/* ---------- 通用按钮 ---------- */
+button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:7px;transition:.15s}
+.btn{min-height:34px;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+.btn:hover{border-color:#c8c2b6;color:var(--ink);background:#fdfcfa}
+.btn:active{transform:translateY(1px)}
+.btn-sm{min-height:30px;padding:4px 10px;font-size:12px}
+.btn-ghost{border:0;background:transparent;color:var(--ink-3);padding:4px 6px;min-height:30px}
+.btn-ghost:hover{color:var(--danger)}
+.btn-accent{border-color:var(--accent);background:var(--accent);color:#fff}
+.btn-accent:hover{background:#0c4e4b;border-color:#0c4e4b;color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.row-tools .grow{flex:1}
+
+/* ---------- 图片列表 ---------- */
+.mlist{display:flex;flex-direction:column;gap:10px}
+.mrow{
+  display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;
+  padding:10px;border:1px solid var(--line-2);border-radius:8px;background:#fdfdfc;
+}
+.mrow.replaced{border-color:#bcd8d5;background:#f4faf9}
+.thumb{
+  width:64px;height:48px;border-radius:5px;background:#f1efe9;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  border:1px solid var(--line-2);
+}
+.thumb img{width:100%;height:100%;object-fit:contain}
+.thumb .na{font-size:11px;color:var(--ink-3);text-align:center;padding:0 3px;line-height:1.3}
+.mrow .meta{min-width:0}
+.mrow .nm{font-size:13px;font-weight:600;word-break:break-all;line-height:1.35}
+.mrow .sub{font-size:12px;color:var(--ink-3);margin-top:3px}
+.mrow .pick{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:3px;background:#eceae4;color:var(--ink-2);margin-right:4px}
+.tag-new{background:var(--accent-soft);color:var(--accent)}
+.empty{color:var(--ink-3);font-size:13px;padding:8px 0;text-align:center}
+
+/* ---------- 字体列表 ---------- */
+.flist{display:flex;flex-direction:column;gap:8px}
+.frow{display:grid;grid-template-columns:1fr 26px 1fr;gap:8px;align-items:center}
+.frow .old{
+  font-size:13px;padding:7px 10px;border:1px solid var(--line-2);border-radius:6px;
+  background:#faf9f7;word-break:break-all;line-height:1.4;
+}
+.frow .arrow{text-align:center;color:var(--ink-3);font-size:14px;line-height:1}
+.frow input{
+  width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:6px;background:#fff;color:var(--ink);min-height:36px;
+}
+.frow input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.frow input::placeholder{color:#b3b8be}
+.frow input.on{border-color:#bcd8d5;background:#f8fcfb}
+.fcell{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fcell select{
+  width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:6px;background:#fff;color:var(--ink);min-height:36px;
+}
+.fcell select.on{border-color:#bcd8d5;background:#f8fcfb}
+.fcell select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fcell .custom{display:none}
+.fcell .custom.on{display:block}
+
+/* 多图素材 */
+.sel.mini{min-height:30px;padding:4px 8px;font-size:12px;width:auto;flex:0 0 auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.chip{display:flex;align-items:center;gap:7px;border:1px solid var(--line-2);border-radius:7px;
+  padding:3px 9px 3px 3px;background:#fbfaf8;font-size:12px;color:var(--ink-2);max-width:190px}
+.chip img{width:38px;height:28px;object-fit:cover;border-radius:4px;background:#f1efe9;flex:0 0 auto}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yearline{margin-top:12px;font-size:12px;color:var(--ink-2);line-height:1.9}
+.yearline .yr{display:inline-block;background:#eceae4;border-radius:3px;padding:0 6px;margin:0 4px 4px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
+.yearline .mp{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:0 6px;margin:0 4px 4px 0}
+.bulk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.bulk em{font-style:normal;font-size:11px;color:var(--ink-2);background:#f1efe9;border-radius:3px;padding:2px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 选项 ---------- */
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.opt{min-width:0}
+.opt>label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:6px;letter-spacing:.2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg input{position:absolute;opacity:0;width:0;height:0}
+.seg label{
+  flex:1;text-align:center;font-size:12px;padding:8px 4px;cursor:pointer;
+  color:var(--ink-2);border-right:1px solid var(--line);background:#fff;line-height:1.4;
+}
+.seg label:last-child{border-right:0}
+.seg input:checked+label{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sel,.num-in{
+  width:100%;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:7px;background:#fff;color:var(--ink);min-height:36px;
+}
+.num-in{padding-right:6px}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--ink-2);cursor:pointer;line-height:1.5}
+.chk input{width:16px;height:16px;margin-top:1px;accent-color:var(--accent);flex:0 0 auto}
+.chk b{color:var(--ink);font-weight:600;display:block;font-size:12px}
+
+/* ---------- 生成区 ---------- */
+.actions{position:sticky;bottom:0}
+.go{
+  width:100%;min-height:46px;font-size:15px;font-weight:600;letter-spacing:.3px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:9px;
+}
+.go:hover:not(:disabled){background:#0c4e4b}
+.go:disabled{background:#8fadaf;border-color:#8fadaf;opacity:.6}
+.status{margin-top:10px;font-size:13px;color:var(--ink-2);min-height:1.6em;line-height:1.6}
+.status .ok{color:var(--accent);font-weight:600}
+.status .err{color:var(--danger)}
+.status .warn{color:var(--warn)}
+.bar{height:3px;background:var(--line-2);border-radius:2px;overflow:hidden;margin-top:8px;display:none}
+.bar.on{display:block}
+.bar i{display:block;height:100%;width:30%;background:var(--accent);animation:slide 1.1s infinite ease-in-out}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(430%)}}
+
+/* ---------- 说明 ---------- */
+.notes{margin-top:22px;border-top:1px solid var(--line);padding-top:16px;color:var(--ink-2);font-size:13px}
+.notes h3{font-size:13px;margin:0 0 8px;color:var(--ink);font-weight:600}
+.notes ul{margin:0;padding-left:18px}
+.notes li{margin-bottom:5px;line-height:1.65}
+.notes code{background:#eceae4;border-radius:3px;padding:1px 5px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.sysalert{display:none;background:#fdf3e7;border:1px solid #f0d9b5;color:#8a5a12;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px;line-height:1.6}
+.sysalert.on{display:block}
+
+@media (max-width:520px){
+  .mrow{grid-template-columns:56px 1fr;gap:10px}
+  .mrow .pick{grid-column:1/-1}
+  .thumb{width:56px;height:42px}
+  .frow{grid-template-columns:1fr;gap:5px}
+  .frow .arrow{display:none}
+  .opts{grid-template-columns:1fr}
+  .head h1{font-size:20px}
+}
+/* 暗色模式 */
+body.dark{--ink:#e6e8ea;--ink-2:#a7adb4;--ink-3:#6b7178;--line:#2c333b;--line-2:#222831;--paper:#161b21;--card:#1c232b;--accent:#2bb6a8;--accent-soft:#14342f;--warn:#e0a84a;--danger:#e06a62}
+body.dark .drop{background:#1a212a;border-color:#2c333b}
+body.dark .drop:hover,body.dark .drop.over{border-color:var(--accent);background:#16242a}
+body.dark .mrow{background:#1f262e;border-color:#2c333b}
+body.dark .fileinfo,body.dark .thumb{background:#161b21;border-color:#2c333b}
+body.dark .frow .old,body.dark .chip{background:#161b21}
+body.dark input,body.dark select,body.dark textarea{background:#161b21;color:var(--ink);border-color:#2c333b}
+body.dark .notes code,body.dark .yearline .yr{background:#222831}
+body.dark .btn{background:#1c232b;color:var(--ink-2);border-color:#2c333b}
+body.dark .btn:hover{color:var(--ink);background:#222831}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <span class="badge">v9 · 本地运行 · 不上传 · 不联网</span>
+    <h1>PPT 图片与字体批量替换</h1>
+    <button class="btn btn-sm" id="btnTheme" style="float:right;margin-top:2px">🌙 暗色</button>
+    <p>换掉整份 PPT 里的图片、把字体统一改成思源黑体或思源宋体。版式、位置、动画、引用关系一概不动。</p>
+  </div>
+
+  <div class="sysalert" id="sysAlert">
+    当前浏览器不支持本工具所需的能力（CompressionStream）。请改用 <b>Chrome / Edge</b> 打开，或用较新版本的 Safari。
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><div class="num">1</div><h2>选择 PPT 文件</h2><span class="hint">支持 .pptx</span></div>
+    <div class="seg" id="modeSeg" style="margin:0 0 14px;max-width:340px">
+      <input type="radio" name="opmode" id="modeSingle" value="single" checked><label for="modeSingle">单份处理</label>
+      <input type="radio" name="opmode" id="modeBatch" value="batch"><label for="modeBatch">批量处理（多份）</label>
+    </div>
+    <div class="drop" id="drop">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg></div>
+      <strong>把 .pptx 拖到这里</strong>
+      <span id="dropTip">或 <em>点击选择文件</em></span>
+    </div>
+    <input type="file" id="fileInput" accept=".pptx" hidden>
+    <input type="file" id="batchInput" accept=".pptx" multiple hidden>
+    <div class="fileinfo" id="fileInfo">
+      <div>
+        <div class="fi-n" id="fiName"></div>
+        <div class="fi-m" id="fiMeta"></div>
+      </div>
+      <button class="btn btn-sm x" id="btnClear">换一份</button>
+    </div>
+    <div class="fileinfo" id="batchInfo">
+      <div style="flex:1;min-width:0">
+        <div class="fi-n" id="batchName"></div>
+        <div class="bulk" id="batchList"></div>
+      </div>
+      <button class="btn btn-sm x" id="btnBatchReset">清空</button>
+    </div>
+  </div>
+
+  <div class="card" id="batchCard" hidden>
+    <div class="card-hd"><div class="num">2</div><h2>批量规则</h2><span class="hint">所选文件都套用这套规则</span></div>
+
+    <div class="opts">
+      <div class="opt">
+        <label>图片素材（可多选，留空则不改图）</label>
+        <div class="row-tools" style="margin-bottom:8px">
+          <button class="btn btn-sm" id="btnBatchMedia">选择素材图</button>
+          <button class="btn btn-sm btn-ghost" id="btnBatchMediaClear">清空素材</button>
+        </div>
+        <select class="sel" id="batchAssign">
+          <option value="rotate">轮换分配</option>
+          <option value="random">随机分配</option>
+        </select>
+        <div class="chips" id="batchChips" hidden style="margin-top:10px"></div>
+      </div>
+
+      <div class="opt">
+        <label>字体统一改成</label>
+        <select class="sel" id="batchFont">
+          <option value="none">不替换</option>
+          <option value="sans">全部 → 思源黑体 CN</option>
+          <option value="serif">全部 → 思源宋体 CN</option>
+          <option value="smart">标题黑体 / 正文宋体（自动判断）</option>
+        </select>
+
+        <label style="margin-top:14px">年份</label>
+        <div class="seg">
+          <input type="radio" name="bymode" id="bymOff" value="off" checked><label for="bymOff">不替换</label>
+          <input type="radio" name="bymode" id="bymRand" value="random"><label for="bymRand">20—26 随机</label>
+          <input type="radio" name="bymode" id="bymFix" value="fixed"><label for="bymFix">指定</label>
+        </div>
+        <input class="num-in" id="bYear" type="number" min="1990" max="2100" step="1" value="2026" disabled style="margin-top:8px">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="mediaCard" hidden>
+    <div class="card-hd"><div class="num">2</div><h2>图片替换</h2><span class="hint" id="mediaHint"></span></div>
+    <div class="row-tools">
+      <button class="btn btn-sm btn-accent" id="btnMultiMedia">多张素材批量替换</button>
+      <select class="sel mini" id="assignMode" title="多张素材怎么分给 PPT 里的图片">
+        <option value="rotate">轮换分配</option>
+        <option value="random">随机分配</option>
+      </select>
+      <button class="btn btn-sm" id="btnReassign" hidden>重新分配</button>
+      <button class="btn btn-sm" id="btnAllMedia">全部换成同一张</button>
+      <button class="btn btn-sm btn-ghost" id="btnResetMedia">清空选择</button>
+    </div>
+    <div class="chips" id="matChips" hidden></div>
+    <div class="mlist" id="mediaList"></div>
+  </div>
+
+  <div class="card" id="fontCard" hidden>
+    <div class="card-hd"><div class="num">3</div><h2>字体替换</h2><span class="hint" id="fontHint"></span></div>
+    <div class="row-tools">
+      <button class="btn btn-sm" id="btnAllSans">全部 → 思源黑体</button>
+      <button class="btn btn-sm" id="btnAllSerif">全部 → 思源宋体</button>
+      <button class="btn btn-sm" id="btnSmart">标题黑体 / 正文宋体</button>
+      <button class="btn btn-sm btn-ghost" id="btnResetFont">清空</button>
+    </div>
+    <div class="flist" id="fontList"></div>
+  </div>
+
+  <div class="card" id="yearCard" hidden>
+    <div class="card-hd"><div class="num">4</div><h2>年份替换</h2><span class="hint" id="yearHint"></span></div>
+    <div class="opts">
+      <div class="opt">
+        <label>处理方式</label>
+        <div class="seg">
+          <input type="radio" name="ymode" id="ymOff" value="off" checked><label for="ymOff">不替换</label>
+          <input type="radio" name="ymode" id="ymRand" value="random"><label for="ymRand">20—26 随机</label>
+          <input type="radio" name="ymode" id="ymFix" value="fixed"><label for="ymFix">指定年份</label>
+        </div>
+      </div>
+      <div class="opt">
+        <label>指定年份（选"指定年份"时生效）</label>
+        <input class="num-in" id="yearFixed" type="number" min="1990" max="2100" step="1" value="2026" disabled>
+      </div>
+    </div>
+    <div class="yearline" id="yearInfo"></div>
+    <div class="row-tools" id="yearTools" hidden style="margin:10px 0 0">
+      <button class="btn btn-sm" id="btnReroll">重新随机</button>
+    </div>
+  </div>
+
+  <div class="card" id="textCard" hidden>
+    <div class="card-hd"><div class="num">5</div><h2>文本批量替换</h2><span class="hint" id="textHint"></span></div>
+    <div class="row-tools">
+      <button class="btn btn-sm" id="btnAddRule">+ 添加规则</button>
+      <label class="chk" style="margin-left:6px"><input type="checkbox" id="caseSensitive"><span>区分大小写</span></label>
+      <button class="btn btn-sm btn-ghost" id="btnClearRules" style="margin-left:auto">清空</button>
+    </div>
+    <div class="flist" id="textRuleList"></div>
+    <div class="notes" style="margin-top:10px">
+      每行一条规则，格式 <code>旧文本 =&gt; 新文本</code>（旧新之间用 <code>=&gt;</code> 分隔）。例：<code>旧公司 =&gt; 新公司</code>。新文本留空表示删除该文字。只替换正文文字（<code>&lt;a:t&gt;</code>），不碰标签与属性。
+    </div>
+  </div>
+
+  <div class="card" id="colorCard" hidden>
+    <div class="card-hd"><div class="num">6</div><h2>主题配色替换</h2><span class="hint" id="colorHint"></span></div>
+    <div class="flist" id="colorList"></div>
+    <div class="notes" style="margin-top:10px">
+      把 PPT 里出现的颜色（<code>srgbClr</code>）统一改成新色，例如把蓝色主色改成品牌红。点右侧色块可手动输入十六进制（如 <code>#C0392B</code>）。
+    </div>
+  </div>
+
+  <div class="card" id="optCard" hidden>
+    <div class="card-hd"><div class="num">7</div><h2>选项</h2><span class="hint">一般不用改</span></div>
+    <div class="opts">
+      <div class="opt">
+        <label>新图比例与原图不一致时</label>
+        <div class="seg">
+          <input type="radio" name="fit" id="fitCover" value="cover" checked><label for="fitCover">裁切铺满</label>
+          <input type="radio" name="fit" id="fitContain" value="contain"><label for="fitContain">完整留白</label>
+          <input type="radio" name="fit" id="fitStretch" value="stretch"><label for="fitStretch">拉伸变形</label>
+        </div>
+      </div>
+      <div class="opt">
+        <label>留白底色（选"完整留白"时生效）</label>
+        <select class="sel" id="padColor">
+          <option value="#FFFFFF">白色</option>
+          <option value="#000000">黑色</option>
+          <option value="#F2F2F0">浅灰</option>
+        </select>
+      </div>
+      <div class="opt">
+        <label>JPEG 输出质量</label>
+        <input class="num-in" id="quality" type="number" min="60" max="100" step="1" value="92">
+      </div>
+      <div class="opt">
+        <label class="chk">
+          <input type="checkbox" id="symbolFont">
+          <span><b>连符号字体一起换</b>Wingdings 这类负责项目符号小图标的字体，勾上会让图标变形，一般别勾</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="go" id="btnGo" disabled>生成新文件</button>
+    <div class="bar" id="bar"><i></i></div>
+    <div class="status" id="status">先选一份 PPT 文件。</div>
+  </div>
+
+  <div class="notes">
+    <h3>三点说明</h3>
+    <ul>
+      <li>字体只是把"引用名"改掉，<b>不会嵌进文件</b>。对方电脑没装该字体会回退显示，交付前建议在 PowerPoint 里勾选「文件 → 选项 → 保存 → 将字体嵌入文件」。</li>
+      <li>新图会先按<b>原图的像素尺寸</b>重新处理再写回去，所以幻灯片里的图片框位置、大小完全不变，不会出现图片被拉扁。</li>
+      <li>矢量图（<code>.emf</code> / <code>.wmf</code>）浏览器读不了，会被跳过并提示，其余图片照常替换。</li>
+      <li>文件只在你自己的电脑里处理，全程不联网、不上传。生成的是一份新文件，原文件不动。</li>
+    </ul>
+  </div>
+
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ==================================================================
+   基础工具
+   ================================================================== */
+var ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'};
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ESC_MAP[c]; }); }
+function fmtSize(n){
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n/1024).toFixed(1) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+}
+function extOf(name){
+  var i = name.lastIndexOf('.');
+  if (i < 0) return '';
+  return name.slice(i).toLowerCase();
+}
+
+var CRC_TABLE = (function(){
+  var t = new Uint32Array(256), c, k, i;
+  for (i = 0; i < 256; i++){
+    c = i;
+    for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  var c = 0xFFFFFFFF, i;
+  for (i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+async function inflateRaw(bytes){
+  var ds = new DecompressionStream('deflate-raw');
+  var stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function deflateRaw(bytes){
+  var cs = new CompressionStream('deflate-raw');
+  var stream = new Blob([bytes]).stream().pipeThrough(cs);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/* ==================================================================
+   ZIP 读写（只用到 store / deflate 两种方式）
+   ================================================================== */
+async function readZip(buf){
+  var dv = new DataView(buf);
+  var eocd = -1, i;
+  var lower = Math.max(0, buf.byteLength - 22 - 65536);
+  for (i = buf.byteLength - 22; i >= lower; i--){
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('这个文件不是有效的 pptx（找不到压缩包目录）');
+
+  var total = dv.getUint16(eocd + 10, true);
+  var cdOffset = dv.getUint32(eocd + 16, true);
+
+  if (total === 0xFFFF || cdOffset === 0xFFFFFFFF){
+    var loc = eocd - 20;
+    if (loc >= 0 && dv.getUint32(loc, true) === 0x07064b50){
+      var z64 = Number(dv.getBigUint64(loc + 8, true));
+      if (dv.getUint32(z64, true) === 0x06064b50){
+        total = Number(dv.getBigUint64(z64 + 32, true));
+        cdOffset = Number(dv.getBigUint64(z64 + 48, true));
+      }
+    }
+  }
+
+  var entries = [], p = cdOffset;
+  for (i = 0; i < total; i++){
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('压缩包目录损坏（第 ' + (i+1) + ' 项）');
+    var flags  = dv.getUint16(p + 8, true);
+    var method = dv.getUint16(p + 10, true);
+    var time   = dv.getUint16(p + 12, true);
+    var date   = dv.getUint16(p + 14, true);
+    var crc    = dv.getUint32(p + 16, true);
+    var csize  = dv.getUint32(p + 20, true);
+    var usize  = dv.getUint32(p + 24, true);
+    var nlen   = dv.getUint16(p + 28, true);
+    var elen   = dv.getUint16(p + 30, true);
+    var clen   = dv.getUint16(p + 32, true);
+    var lho    = dv.getUint32(p + 42, true);
+    if (csize === 0xFFFFFFFF || usize === 0xFFFFFFFF) throw new Error('文件使用了 Zip64 大文件格式，暂不支持');
+    var name = new TextDecoder().decode(buf.slice(p + 46, p + 46 + nlen));
+    entries.push({name:name, flags:flags, method:method, time:time, date:date,
+                  crc:crc, csize:csize, usize:usize, lho:lho, raw:null, data:null,
+                  dirty:false, text:null, bom:false});
+    p += 46 + nlen + elen + clen;
+  }
+
+  for (i = 0; i < entries.length; i++){
+    var en = entries[i];
+    var nl = dv.getUint16(en.lho + 26, true);
+    var el = dv.getUint16(en.lho + 28, true);
+    var start = en.lho + 30 + nl + el;
+    en.raw = buf.slice(start, start + en.csize);
+  }
+  return entries;
+}
+
+async function writeZip(entries){
+  var parts = [], central = [], offset = 0, i, en, c;
+  var enc = new TextEncoder();
+
+  for (i = 0; i < entries.length; i++){
+    en = entries[i];
+    var data = en.raw, method = en.method, crc = en.crc, csize = en.csize, usize = en.usize;
+
+    if (en.dirty){
+      var raw = en.data;
+      method = (en.method === 0) ? 0 : 8;
+      data = (method === 0) ? raw : await deflateRaw(raw);
+      crc = crc32(raw);
+      csize = data.byteLength;
+      usize = raw.byteLength;
+    }
+    if (csize > 0xFFFFFFFE || usize > 0xFFFFFFFE) throw new Error('单项数据超过 4GB，暂不支持');
+
+    var nameBytes = enc.encode(en.name);
+    var lh = new Uint8Array(30 + nameBytes.length);
+    var lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, method, true);
+    lv.setUint16(10, en.time, true);
+    lv.setUint16(12, en.date, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, csize, true);
+    lv.setUint32(22, usize, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    lh.set(nameBytes, 30);
+
+    parts.push(lh, data);
+    central.push({name:nameBytes, method:method, crc:crc, csize:csize, usize:usize,
+                  time:en.time, date:en.date, offset:offset});
+    offset += lh.byteLength + data.byteLength;
+  }
+
+  var cdParts = [], cdSize = 0;
+  for (i = 0; i < central.length; i++){
+    c = central[i];
+    var h = new Uint8Array(46 + c.name.length);
+    var v = new DataView(h.buffer);
+    v.setUint32(0, 0x02014b50, true);
+    v.setUint16(4, 20, true);
+    v.setUint16(6, 20, true);
+    v.setUint16(8, 0x0800, true);
+    v.setUint16(10, c.method, true);
+    v.setUint16(12, c.time, true);
+    v.setUint16(14, c.date, true);
+    v.setUint32(16, c.crc, true);
+    v.setUint32(20, c.csize, true);
+    v.setUint32(24, c.usize, true);
+    v.setUint16(28, c.name.length, true);
+    v.setUint32(42, c.offset, true);
+    h.set(c.name, 46);
+    cdParts.push(h);
+    cdSize += h.byteLength;
+  }
+
+  var eocd = new Uint8Array(22);
+  var ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, central.length, true);
+  ev.setUint16(10, central.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, offset, true);
+
+  return new Blob(parts.concat(cdParts, [eocd]), {type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+}
+
+/* ==================================================================
+   字体：识别与改写
+   ================================================================== */
+var FONT_RE = /<((?:[A-Za-z_][\w.-]*:)?(?:latin|ea|cs|sym|buFont|font))\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
+var TF_RE = /\stypeface="([^"]*)"/;
+
+function tagOf(tagFull){
+  var i = tagFull.lastIndexOf(':');
+  return i < 0 ? tagFull : tagFull.slice(i + 1);
+}
+
+function applyFonts(text, map, allowSymbol){
+  var changed = 0;
+  var out = text.replace(FONT_RE, function(full, tagFull, attrs){
+    var tag = tagOf(tagFull);
+    if (tag === 'sym' || tag === 'buFont'){ if (!allowSymbol) return full; }
+    if (tag === 'font') return full;                 // 主题里各语种备用字体，不动
+    var m = TF_RE.exec(attrs);
+    if (!m) return full;
+    var old = m[1];
+    if (!old || old.charAt(0) === '+') return full;  // +mj-lt 这类主题占位符
+    var key = old.trim().toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(map, key)) return full;
+    var to = map[key];
+    if (!to || to === old) return full;
+    changed++;
+    var newAttrs = attrs.slice(0, m.index) + ' typeface="' + to + '"' + attrs.slice(m.index + m[0].length);
+    return '<' + tagFull + newAttrs + '>';
+  });
+  return {text:out, changed:changed};
+}
+
+function scanFonts(entries){
+  var inv = {}, i, en, text, m, tag, name;
+  FONT_RE.lastIndex = 0;
+  for (i = 0; i < entries.length; i++){
+    en = entries[i];
+    if (!en.text) continue;
+    var re = new RegExp(FONT_RE.source, 'g');
+    while ((m = re.exec(en.text)) !== null){
+      tag = tagOf(m[1]);
+      if (tag === 'sym' || tag === 'buFont' || tag === 'font') continue;
+      var tf = TF_RE.exec(m[2]);
+      if (!tf) continue;
+      name = tf[1].trim();
+      if (!name || name.charAt(0) === '+') continue;
+      inv[name] = (inv[name] || 0) + 1;
+    }
+  }
+  var list = Object.keys(inv).map(function(k){ return {name:k, count:inv[k], target:''}; });
+  list.sort(function(a, b){ return b.count - a.count; });
+  return list;
+}
+
+/* ==================================================================
+   年份
+   ================================================================== */
+var AT_RE = /(<a:t\b[^>]*>)([^<]*)(<\/a:t>)/g;
+var YEAR_RE = /(?<!\d)(?:19|20)\d{2}(?!\d)/g;
+
+function scanYears(entries){
+  var counts = {}, total = 0, i, m;
+  for (i = 0; i < entries.length; i++){
+    var text = entries[i].text;
+    if (!text || text.indexOf('<a:t') < 0) continue;
+    var re = new RegExp(AT_RE.source, 'g');
+    while ((m = re.exec(text)) !== null){
+      var yrs = m[2].match(new RegExp(YEAR_RE.source, 'g'));
+      if (!yrs) continue;
+      for (var k = 0; k < yrs.length; k++){
+        counts[yrs[k]] = (counts[yrs[k]] || 0) + 1;
+        total++;
+      }
+    }
+  }
+  return {counts: counts, total: total};
+}
+
+function applyYears(text, mapper){
+  var n = 0;
+  var out = text.replace(AT_RE, function(full, open, body, close){
+    if (body.indexOf('19') < 0 && body.indexOf('20') < 0) return full;
+    var nb = body.replace(YEAR_RE, function(y){
+      var to = mapper(y);
+      if (!to || to === y) return y;
+      n++;
+      return to;
+    });
+    return nb === body ? full : (open + nb + close);
+  });
+  return {text: out, count: n};
+}
+
+function buildYearMap(counts){
+  counts = counts || (S.yearStats && S.yearStats.counts) || {};
+  var pool = [];
+  for (var y = 2020; y <= 2026; y++) pool.push(String(y));
+  for (var i = pool.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  var map = {}, idx = 0;
+  Object.keys(counts).sort().forEach(function(old){
+    map[old] = pool[idx % pool.length];
+    idx++;
+  });
+  return map;
+}
+
+function renderYears(){
+  var info = $('yearInfo'), st = S.yearStats || {counts:{}, total:0};
+  var yrs = Object.keys(st.counts).sort();
+  $('yearTools').hidden = true;
+  if (!st.total){
+    info.innerHTML = '<span style="color:#8a9099">这份 PPT 里没有找到 4 位年份文本。</span>';
+    $('yearHint').textContent = '';
+    return;
+  }
+  $('yearHint').textContent = st.total + ' 处';
+
+  var html = '共 <b>' + st.total + '</b> 处年份，涉及 ' + yrs.length + ' 个：';
+  yrs.forEach(function(y){ html += '<span class="yr">' + y + '×' + st.counts[y] + '</span>'; });
+
+  if (S.yearMode === 'random'){
+    html += '<br>随机映射（同一个旧年份 → 同一个新年份）：';
+    yrs.forEach(function(y){ html += '<span class="mp">' + y + ' → ' + (S.yearMap[y] || y) + '</span>'; });
+    $('yearTools').hidden = false;
+  } else if (S.yearMode === 'fixed'){
+    html += '<br>全部替换为：<span class="mp">' + esc($('yearFixed').value) + '</span>';
+  }
+  info.innerHTML = html;
+}
+
+/* ==================================================================
+   颜色 & 文本
+   ================================================================== */
+function scanColors(entries){
+  var inv = {}, i, en, m, re;
+  for (i = 0; i < entries.length; i++){
+    en = entries[i];
+    if (!en.text) continue;
+    re = /srgbClr\b[^>]*?val="([0-9a-fA-F]{6})"/g;
+    while ((m = re.exec(en.text)) !== null){
+      var hex = m[1].toUpperCase();
+      inv[hex] = (inv[hex] || 0) + 1;
+    }
+  }
+  var list = Object.keys(inv).map(function(k){ return {hex:k, count:inv[k], to:''}; });
+  list.sort(function(a, b){ return b.count - a.count; });
+  return list;
+}
+
+function applyColors(text, map){
+  if (!map || !Object.keys(map).length) return {text:text, count:0};
+  var n = 0;
+  var out = text.replace(/val="([0-9a-fA-F]{6})"/g, function(full, hex){
+    var key = hex.toUpperCase();
+    if (!Object.prototype.hasOwnProperty.call(map, key)) return full;
+    var to = map[key];
+    if (!to || to === hex) return full;
+    n++;
+    return 'val="' + to.toUpperCase() + '"';
+  });
+  return {text:out, count:n};
+}
+
+function renderColors(){
+  var list = $('colorList'), i, c, html = '';
+  if (!S.colors || !S.colors.length){
+    list.innerHTML = '<div class="empty">这份 PPT 里没有发现硬编码颜色。</div>';
+    $('colorHint').textContent = '';
+    return;
+  }
+  for (i = 0; i < S.colors.length; i++){
+    c = S.colors[i];
+    html += '<div class="frow">';
+    html += '<div class="old" style="display:flex;align-items:center;gap:8px">'
+          + '<span style="width:18px;height:18px;border-radius:4px;border:1px solid var(--line);background:#' + c.hex + '"></span>'
+          + '#' + c.hex + ' <span style="color:var(--ink-3)">×' + c.count + '</span></div>';
+    html += '<div class="arrow">→</div>';
+    html += '<div class="fcell"><input type="text" class="co" data-color="' + i + '" value="' + esc(c.to) + '" placeholder="#C0392B" style="text-transform:uppercase"></div>';
+    html += '</div>';
+  }
+  list.innerHTML = html;
+  updateColorHint();
+}
+
+function updateColorHint(){
+  if (!S.colors) return;
+  var n = S.colors.filter(function(x){ return x.to.trim(); }).length;
+  $('colorHint').textContent = n ? ('已设 ' + n + ' / ' + S.colors.length) : ('共 ' + S.colors.length + ' 种');
+}
+
+/* 文本替换 */
+var AT_SCAN_RE = /(<a:t\b[^>]*>)([\s\S]*?)(<\/a:t>)/g;
+
+function scanTextCount(entries){
+  var n = 0;
+  entries.forEach(function(en){
+    if (!en.text || en.text.indexOf('<a:t') < 0) return;
+    var re = new RegExp(AT_SCAN_RE.source, 'g'), m;
+    while ((m = re.exec(en.text)) !== null){ n++; }
+  });
+  return n;
+}
+
+function applyTextReplace(text, rules, caseSensitive){
+  if (!rules || !rules.length) return {text:text, count:0};
+  var n = 0;
+  var out = text.replace(AT_SCAN_RE, function(full, open, body, close){
+    if (!body) return full;
+    var nb = body, changed = false;
+    rules.forEach(function(r){
+      if (!r.from) return;
+      if (caseSensitive){
+        if (nb.indexOf(r.from) >= 0){ nb = nb.split(r.from).join(r.to); changed = true; }
+      } else {
+        var re = new RegExp(r.from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        if (re.test(nb)){ nb = nb.replace(re, function(){ return r.to; }); changed = true; }
+      }
+    });
+    if (!changed) return full;
+    n++;
+    return open + nb + close;
+  });
+  return {text:out, count:n};
+}
+
+function renderTexts(){
+  var list = $('textRuleList');
+  if (!S.textRules.length){
+    list.innerHTML = '<div class="empty">还没有规则。点「+ 添加规则」开始。</div>';
+    $('textHint').textContent = '';
+    return;
+  }
+  var html = '';
+  S.textRules.forEach(function(r, i){
+    html += '<div class="frow">';
+    html += '<input type="text" class="tr" data-role="from" data-idx="' + i + '" value="' + esc(r.from) + '" placeholder="旧文本">';
+    html += '<div class="arrow">→</div>';
+    html += '<div class="fcell"><input type="text" class="tr" data-role="to" data-idx="' + i + '" value="' + esc(r.to) + '" placeholder="新文本（留空=删除）"></div>';
+    html += '<button class="btn btn-sm btn-ghost" data-delrule="' + i + '">✕</button>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+  $('textHint').textContent = S.textRules.length + ' 条规则';
+}
+
+/* ==================================================================
+   图片
+   ================================================================== */var SKIP_EXT = ['.emf', '.wmf', '.svg', '.wdp', '.emz', '.wmz'];
+var RASTER_EXT = ['.png', '.jpg', '.jpeg', '.jpe', '.gif', '.bmp', '.tif', '.tiff', '.webp'];
+var MIME_BY_EXT = {
+  '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.jpe':'image/jpeg',
+  '.gif':'image/gif', '.bmp':'image/bmp', '.tif':'image/tiff', '.tiff':'image/tiff', '.webp':'image/webp'
+};
+
+async function makeThumb(bmp){
+  var c = document.createElement('canvas');
+  c.width = 128; c.height = 96;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  var s = Math.min(c.width / bmp.width, c.height / bmp.height);
+  var w = bmp.width * s, h = bmp.height * s;
+  ctx.drawImage(bmp, (c.width - w)/2, (c.height - h)/2, w, h);
+  return c.toDataURL('image/png');
+}
+
+async function renderReplacement(file, tw, th, opts){
+  var bmp = await createImageBitmap(file);
+  var canvas = document.createElement('canvas');
+  canvas.width = tw; canvas.height = th;
+  var ctx = canvas.getContext('2d');
+  var isJpeg = (opts.ext === '.jpg' || opts.ext === '.jpeg' || opts.ext === '.jpe');
+  var sw = bmp.width, sh = bmp.height, s, w, h;
+
+  if (isJpeg || opts.fit === 'contain'){
+    ctx.fillStyle = isJpeg ? '#ffffff' : opts.pad;
+    ctx.fillRect(0, 0, tw, th);
+  }
+
+  if (opts.fit === 'stretch'){
+    ctx.drawImage(bmp, 0, 0, tw, th);
+  } else if (opts.fit === 'cover'){
+    s = Math.max(tw / sw, th / sh);
+    w = sw * s; h = sh * s;
+    ctx.drawImage(bmp, (tw - w)/2, (th - h)/2, w, h);
+  } else {
+    s = Math.min(tw / sw, th / sh);
+    w = sw * s; h = sh * s;
+    ctx.drawImage(bmp, (tw - w)/2, (th - h)/2, w, h);
+  }
+  if (bmp.close) bmp.close();
+
+  var type = isJpeg ? 'image/jpeg' : 'image/png';
+  return await new Promise(function(resolve, reject){
+    canvas.toBlob(function(b){
+      if (b) resolve(b); else reject(new Error('图片转换失败'));
+    }, type, isJpeg ? opts.quality / 100 : undefined);
+  });
+}
+
+/* ==================================================================
+   状态
+   ================================================================== */
+var S = { file:null, name:'', entries:null, byName:null, media:[], fonts:[], slides:0,
+          pending:null, materials:[], yearMode:'off', yearFixed:'2026',
+          yearStats:{counts:{}, total:0}, yearMap:{},
+          textRules:[], colors:[], colorMap:{}, textSegs:0,
+          batch:false, batchFiles:[], batchMaterials:[] };
+
+var $ = function(id){ return document.getElementById(id); };
+function setStatus(html, cls){
+  var el = $('status');
+  el.innerHTML = html;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+/* ==================================================================
+   读文件
+   ================================================================== */
+async function loadFile(file){
+  if (!file) return;
+  if (!/\.pptx$/i.test(file.name)){ setStatus('<span class="err">只支持 .pptx 文件。</span>'); return; }
+  if (/_替换\.pptx$/i.test(file.name)){
+    setStatus('<span class="warn">注意：这份文件本身已经是被处理过的副本，建议改用原始模板重新处理，否则可能叠加问题。</span>');
+  }
+
+  S.file = file;
+  S.name = file.name;
+  $('fiName').textContent = file.name + '（' + fmtSize(file.size) + '）';
+  $('fileInfo').classList.add('on');
+  $('btnGo').disabled = true;
+  $('bar').classList.add('on');
+  setStatus('正在读取文件…');
+
+  try{
+    var buf = await file.arrayBuffer();
+    var entries = await readZip(buf);
+    S.entries = entries;
+    S.byName = {};
+    entries.forEach(function(en){ S.byName[en.name] = en; });
+
+    /* 读 XML 部件 */
+    var xmlEntries = entries.filter(function(en){
+      return en.name.indexOf('ppt/') === 0 && /\.xml$/i.test(en.name);
+    });
+    var dec = new TextDecoder('utf-8');
+    var i;
+    for (i = 0; i < xmlEntries.length; i++){
+      var en = xmlEntries[i];
+      var u8 = new Uint8Array(en.raw);
+      var bom = u8.length > 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF;
+      var arr = bom ? u8.subarray(3) : u8;
+      var raw = (en.method === 0) ? arr : await inflateRaw(arr);
+      en.text = dec.decode(raw);
+      en.bom = bom;
+    }
+
+    /* 页数 & 图片引用 */
+    S.slides = entries.filter(function(en){ return /^ppt\/slides\/slide\d+\.xml$/i.test(en.name); }).length;
+    var usage = {};
+    entries.forEach(function(en){
+      var m = /^ppt\/slides\/_rels\/(slide\d+)\.xml\.rels$/i.exec(en.name);
+      if (!m || !en.text) return;
+      var re = /Target="([^"]+)"/g, t;
+      while ((t = re.exec(en.text)) !== null){
+        var base = t[1].split('/').pop();
+        if (!base) continue;
+        usage[base] = usage[base] || [];
+        if (usage[base].indexOf(m[1]) < 0) usage[base].push(m[1]);
+      }
+    });
+
+    /* 图片清单 */
+    var mediaEntries = entries.filter(function(en){ return en.name.indexOf('ppt/media/') === 0; });
+    S.media = [];
+    $('mediaList').innerHTML = '<div class="empty">正在解析图片…</div>';
+    $('mediaCard').hidden = false;
+
+    for (i = 0; i < mediaEntries.length; i++){
+      en = mediaEntries[i];
+      var base = en.name.split('/').pop();
+      var ext = extOf(base);
+      setStatus('正在解析图片 ' + (i + 1) + ' / ' + mediaEntries.length + '…');
+
+      var item = {name:en.name, base:base, ext:ext, size:en.usize, w:0, h:0,
+                  thumb:'', ok:false, reason:'', replacement:null,
+                  pages:(usage[base] || []).map(function(s){ return parseInt(s.replace('slide',''), 10); })
+                        .sort(function(a,b){ return a-b; })};
+
+      if (SKIP_EXT.indexOf(ext) >= 0){
+        item.reason = '矢量图，浏览器无法处理';
+      } else if (RASTER_EXT.indexOf(ext) < 0){
+        item.reason = '不支持的格式';
+      } else {
+        try{
+          var raw2 = (en.method === 0) ? new Uint8Array(en.raw) : await inflateRaw(en.raw);
+          var blob = new Blob([raw2], {type: MIME_BY_EXT[ext] || 'application/octet-stream'});
+          var bmp = await createImageBitmap(blob);
+          item.w = bmp.width; item.h = bmp.height; item.ok = true;
+          item.thumb = await makeThumb(bmp);
+          if (bmp.close) bmp.close();
+        } catch(err){
+          item.reason = '图片已损坏或格式特殊';
+        }
+      }
+      S.media.push(item);
+    }
+
+    /* 字体清单 */
+    S.fonts = scanFonts(xmlEntries);
+
+    /* 颜色清单 */
+    S.colors = scanColors(xmlEntries);
+    S.colorMap = {};
+    renderColors();
+    $('colorCard').hidden = false;
+
+    /* 文本规则 */
+    S.textRules = S.textRules || [];
+    S.textSegs = scanTextCount(xmlEntries);
+    renderTexts();
+    $('textCard').hidden = false;
+
+    /* 年份统计 */
+    S.yearStats = scanYears(xmlEntries);
+    S.yearMode = 'off';
+    S.yearMap = {};
+    $('ymOff').checked = true;
+    $('yearFixed').disabled = true;
+    renderYears();
+    $('yearCard').hidden = false;
+
+    renderMedia();
+    renderFonts();
+    $('fontCard').hidden = false;
+    $('optCard').hidden = false;
+
+    var usable = S.media.filter(function(m){ return m.ok; }).length;
+    $('fiMeta').textContent = S.slides + ' 页 · ' + S.media.length + ' 张图片（' + usable + ' 张可替换）· ' + S.fonts.length + ' 种字体 · ' + (S.textSegs||0) + ' 段文本 · ' + (S.colors?S.colors.length:0) + ' 种颜色';
+    setStatus('文件读取完成，可以开始替换。');
+    updateGo();
+  } catch(err){
+    setStatus('<span class="err">读取失败：' + esc(err.message) + '</span>');
+    $('mediaCard').hidden = true;
+    $('fontCard').hidden = true;
+    $('optCard').hidden = true;
+  } finally {
+    $('bar').classList.remove('on');
+  }
+}
+
+/* ==================================================================
+   渲染：图片
+   ================================================================== */
+function pageText(pages){
+  if (!pages.length) return '母版 / 未引用';
+  if (pages.length > 6) return '第 ' + pages.slice(0, 6).join('、') + ' 页等 ' + pages.length + ' 页';
+  return '第 ' + pages.join('、') + ' 页';
+}
+
+function renderMedia(){
+  var list = $('mediaList'), i, m, html = '';
+  if (!S.media.length){
+    list.innerHTML = '<div class="empty">这份 PPT 里没有嵌入图片。</div>';
+    $('mediaHint').textContent = '';
+    return;
+  }
+
+  var n = 0;
+  for (i = 0; i < S.media.length; i++){
+    m = S.media[i];
+    if (m.replacement) n++;
+    html += '<div class="mrow' + (m.replacement ? ' replaced' : '') + '">';
+    html += '<div class="thumb">' + (m.thumb ? '<img alt="" src="' + m.thumb + '">' :
+            '<div class="na">' + (m.ok ? '' : esc(m.reason)) + '</div>') + '</div>';
+    html += '<div class="meta">';
+    html += '<div class="nm">' + esc(m.base) + '</div>';
+    html += '<div class="sub">';
+    if (m.ok) html += m.w + '×' + m.h + ' · ' + fmtSize(m.size) + ' · ' + esc(pageText(m.pages));
+    else html += esc(m.reason) + ' · ' + esc(pageText(m.pages));
+    html += '</div>';
+    if (m.replacement){
+      html += '<div class="sub"><span class="tag tag-new">已选</span>' + esc(m.replacement.name) + '</div>';
+    }
+    html += '</div>';
+    html += '<div class="pick">';
+    if (m.ok){
+      html += '<button class="btn btn-sm" data-pick="' + i + '">' + (m.replacement ? '换一张' : '选择新图') + '</button>';
+      if (m.replacement) html += '<button class="btn btn-sm btn-ghost" data-unpick="' + i + '">取消</button>';
+    } else {
+      html += '<span class="tag">跳过</span>';
+    }
+    html += '</div></div>';
+  }
+  list.innerHTML = html;
+  $('mediaHint').textContent = n ? ('已选 ' + n + ' / ' + S.media.length) : ('共 ' + S.media.length + ' 张');
+}
+
+/* ==================================================================
+   渲染：字体
+   ================================================================== */
+var FONT_CHOICES = ['思源黑体 CN', '思源宋体 CN', '微软雅黑', '等线', 'HarmonyOS Sans SC', '苹方', '宋体', '黑体', '楷体', '仿宋'];
+
+function updateFontHint(){
+  var n = S.fonts.filter(function(x){ return x.target.trim(); }).length;
+  $('fontHint').textContent = n ? ('已设 ' + n + ' / ' + S.fonts.length) : ('共 ' + S.fonts.length + ' 种');
+}
+
+function renderFonts(){
+  var list = $('fontList'), i, f, html = '';
+  if (!S.fonts.length){
+    list.innerHTML = '<div class="empty">没有发现硬编码的字体名，全部走主题字体。</div>';
+    $('fontHint').textContent = '';
+    return;
+  }
+  for (i = 0; i < S.fonts.length; i++){
+    f = S.fonts[i];
+    var val = f.target.trim();
+    var isCustom = !!val && FONT_CHOICES.indexOf(val) < 0;
+    if (isCustom) f.custom = val;
+
+    html += '<div class="frow">';
+    html += '<div class="old" title="' + esc(f.name) + '（出现 ' + f.count + ' 处）">' + esc(f.name) + '</div>';
+    html += '<div class="arrow">→</div>';
+    html += '<div class="fcell">';
+    html += '<select class="' + (val ? 'on' : '') + '" data-font="' + i + '">';
+    html += '<option value=""' + (val ? '' : ' selected') + '>不替换</option>';
+    FONT_CHOICES.forEach(function(c){
+      html += '<option value="' + esc(c) + '"' + (val === c ? ' selected' : '') + '>' + esc(c) + '</option>';
+    });
+    html += '<option value="__custom"' + (isCustom ? ' selected' : '') + '>其他字体（手动输入）</option>';
+    html += '</select>';
+    html += '<input type="text" class="custom' + (isCustom ? ' on' : '') + '" data-custom="' + i +
+            '" value="' + esc(f.custom || '') + '" placeholder="字体名，例如 微软雅黑">';
+    html += '</div></div>';
+  }
+  list.innerHTML = html;
+  updateFontHint();
+}
+
+function setAllFonts(fn){
+  S.fonts.forEach(function(f){
+    f.target = fn(f.name) || '';
+    if (FONT_CHOICES.indexOf(f.target) < 0) f.custom = f.target;
+  });
+  renderFonts();
+  updateGo();
+}
+
+function smartTargets(name){
+  var n = name.toLowerCase();
+  if (/黑|hei|yahei|yahei|gothic|arial|calibri|segoe|helvetica|pingfang|dengxian|等线/.test(n)) return '思源黑体 CN';
+  if (/宋|sung|simsun|serif|times|songti|ming|fangsong|仿宋|楷|kai/.test(n)) return '思源宋体 CN';
+  return '';
+}
+
+/* ==================================================================
+   生成
+   ================================================================== */
+function updateGo(){
+  if (S.batch){
+    $('btnGo').disabled = S.batchFiles.length === 0;
+    return;
+  }
+  var anyMedia = S.media.some(function(m){ return m.replacement; });
+  var anyFont = S.fonts.some(function(f){ return f.target.trim(); });
+  var anyYear = S.yearMode !== 'off' && S.yearStats.total > 0;
+  var anyText = (S.textRules || []).some(function(r){ return r.from.trim(); });
+  var anyColor = (S.colors || []).some(function(c){ return c.to.trim(); });
+  $('btnGo').disabled = !(anyMedia || anyFont || anyYear || anyText || anyColor);
+}
+
+function getFit(){
+  var el = document.querySelector('input[name="fit"]:checked');
+  return el ? el.value : 'cover';
+}
+
+function readOpts(){
+  return {
+    fit: getFit(),
+    pad: $('padColor').value,
+    quality: Math.min(100, Math.max(60, parseInt($('quality').value, 10) || 92)),
+    symbol: $('symbolFont').checked
+  };
+}
+
+/* ==================================================================
+   批量：单份处理内核（不依赖界面状态）
+   ================================================================== */
+async function processDeck(file, opts, rules){
+  var buf = await file.arrayBuffer();
+  var entries = await readZip(buf);
+  var i, en;
+
+  var xmlEntries = entries.filter(function(x){
+    return x.name.indexOf('ppt/') === 0 && /\.xml$/i.test(x.name);
+  });
+  var dec = new TextDecoder('utf-8');
+  for (i = 0; i < xmlEntries.length; i++){
+    en = xmlEntries[i];
+    var u8 = new Uint8Array(en.raw);
+    var bom = u8.length > 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF;
+    var arr = bom ? u8.subarray(3) : u8;
+    var raw = (en.method === 0) ? arr : await inflateRaw(arr);
+    en.text = dec.decode(raw);
+    en.bom = bom;
+  }
+
+  var warns = [], mediaDone = 0, fontDone = 0, yearDone = 0, textDone = 0, colorDone = 0;
+
+  /* 图片 */
+  if (rules.materials && rules.materials.length){
+    var mediaEntries = entries.filter(function(x){ return x.name.indexOf('ppt/media/') === 0; });
+    var k = 0;
+    for (i = 0; i < mediaEntries.length; i++){
+      en = mediaEntries[i];
+      var base = en.name.split('/').pop();
+      var ext = extOf(base);
+      if (SKIP_EXT.indexOf(ext) >= 0 || RASTER_EXT.indexOf(ext) < 0) continue;
+      try{
+        var raw2 = (en.method === 0) ? new Uint8Array(en.raw) : await inflateRaw(en.raw);
+        var blob = new Blob([raw2], {type: MIME_BY_EXT[ext] || 'application/octet-stream'});
+        var bmp = await createImageBitmap(blob);
+        var w = bmp.width, h = bmp.height;
+        if (bmp.close) bmp.close();
+
+        var pick = (rules.assign === 'random')
+          ? Math.floor(Math.random() * rules.materials.length)
+          : (k++ % rules.materials.length);
+
+        var outBlob = await renderReplacement(rules.materials[pick], w, h,
+                        {fit:opts.fit, pad:opts.pad, quality:opts.quality, ext:ext});
+        en.data = new Uint8Array(await outBlob.arrayBuffer());
+        en.dirty = true;
+        mediaDone++;
+      } catch(err){
+        warns.push(base + '：' + err.message);
+      }
+    }
+  }
+
+  /* 字体映射 */
+  var names = scanFonts(xmlEntries);
+  var map = {};
+  names.forEach(function(f){
+    var to = '';
+    if (rules.font === 'sans') to = '思源黑体 CN';
+    else if (rules.font === 'serif') to = '思源宋体 CN';
+    else if (rules.font === 'smart') to = smartTargets(f.name);
+    if (to) map[f.name.trim().toLowerCase()] = to;
+  });
+  var hasFont = Object.keys(map).length > 0;
+
+  /* 年份 */
+  var yst = scanYears(xmlEntries);
+  var yearMapper = null;
+  if (yst.total){
+    if (rules.yearMode === 'random'){
+      var ym = buildYearMap(yst.counts);
+      yearMapper = function(y){ return ym[y] || y; };
+    } else if (rules.yearMode === 'fixed' && rules.yearFixed){
+      yearMapper = function(){ return rules.yearFixed; };
+    }
+  }
+
+  var textRules = (rules.textRules || []).filter(function(r){ return r.from && r.from.trim(); })
+    .map(function(r){ return {from:r.from.trim(), to:(r.to||'')}; });
+  var colorMap = {};
+  (rules.colorMap || []).forEach(function(c){ if (c.to && c.to.trim()) colorMap[c.hex] = c.to.trim().replace(/^#/, '').toUpperCase(); });
+
+  if (hasFont || yearMapper || textRules.length || Object.keys(colorMap).length){
+    for (i = 0; i < xmlEntries.length; i++){
+      var xe = xmlEntries[i];
+      var workText = xe.text, fc = 0, yc = 0, tc = 0, cc = 0, rr;
+      if (hasFont){
+        rr = applyFonts(workText, map, opts.symbol);
+        workText = rr.text; fc = rr.changed;
+      }
+      if (yearMapper){
+        rr = applyYears(workText, yearMapper);
+        workText = rr.text; yc = rr.count;
+      }
+      if (textRules.length){
+        rr = applyTextReplace(workText, textRules, false);
+        workText = rr.text; tc = rr.count;
+      }
+      if (Object.keys(colorMap).length){
+        rr = applyColors(workText, colorMap);
+        workText = rr.text; cc = rr.count;
+      }
+      if (!fc && !yc && !tc && !cc) continue;
+
+      var doc = new DOMParser().parseFromString(workText, 'application/xml');
+      if (doc.getElementsByTagName('parsererror').length){
+        throw new Error(xe.name + ' 改写后 XML 校验未通过');
+      }
+      var nb = new TextEncoder().encode(workText);
+      if (xe.bom){
+        var withBom = new Uint8Array(nb.length + 3);
+        withBom[0] = 0xEF; withBom[1] = 0xBB; withBom[2] = 0xBF;
+        withBom.set(nb, 3);
+        nb = withBom;
+      }
+      xe.data = nb;
+      xe.dirty = true;
+      fontDone += fc;
+      yearDone += yc;
+      textDone += tc;
+      colorDone += cc;
+    }
+  }
+
+  var blob = await writeZip(entries);
+  var verify = await readZip(await blob.arrayBuffer());
+  if (verify.length !== entries.length) throw new Error('打包条目数不一致');
+
+  return {
+    blob: blob,
+    name: file.name.replace(/\.pptx$/i, '') + '_替换.pptx',
+    mediaDone: mediaDone, fontDone: fontDone, yearDone: yearDone, textDone: textDone, colorDone: colorDone, warns: warns
+  };
+}
+
+async function generateBatch(){
+  var files = S.batchFiles;
+  if (!files.length) return;
+
+  var opts = readOpts();
+  var ymode = (document.querySelector('input[name="bymode"]:checked') || {value:'off'}).value;
+  var rules = {
+    materials: S.batchMaterials,
+    assign: $('batchAssign').value,
+    font: $('batchFont').value,
+    yearMode: ymode,
+    yearFixed: String(parseInt($('bYear').value, 10) || ''),
+    textRules: S.textRules || [],
+    colorMap: S.colors || []
+  };
+
+  $('btnGo').disabled = true;
+  $('bar').classList.add('on');
+  var out = [], fails = [], totalMedia = 0, totalFont = 0, totalYear = 0, totalText = 0, totalColor = 0, i;
+  var usedNames = {};
+
+  try{
+    for (i = 0; i < files.length; i++){
+      setStatus('正在处理第 ' + (i + 1) + ' / ' + files.length + ' 份：' + esc(files[i].name) + '…');
+      try{
+        var r = await processDeck(files[i], opts, rules);
+        var nm = r.name;
+        if (usedNames[nm]){
+          usedNames[nm]++;
+          nm = nm.replace(/\.pptx$/i, '') + '(' + usedNames[nm] + ').pptx';
+        } else {
+          usedNames[nm] = 1;
+        }
+        out.push({name: nm, data: new Uint8Array(await r.blob.arrayBuffer()),
+                  dirty: true, method: 0});
+        totalMedia += r.mediaDone; totalFont += r.fontDone; totalYear += r.yearDone; totalText += r.textDone; totalColor += r.colorDone;
+        if (r.warns.length) fails.push(files[i].name + '：' + r.warns.slice(0, 2).join('；'));
+      } catch(err){
+        fails.push(files[i].name + '：' + (err.message || String(err)));
+      }
+    }
+    if (!out.length) throw new Error('所有文件都处理失败：' + fails.slice(0, 2).join('；'));
+
+    setStatus('正在打包…');
+    var zip = await writeZip(out);
+    var zipBlob = new Blob([await zip.arrayBuffer()], {type: 'application/zip'});
+    var url = URL.createObjectURL(zipBlob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '批量替换_' + out.length + '份.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+
+    var msg = '<span class="ok">完成：</span>' + out.length + ' 份文件已打包，共替换 ' + totalMedia +
+              ' 张图片、' + totalFont + ' 处字体、' + totalYear + ' 处年份、' + totalText + ' 段文本、' + totalColor + ' 处颜色。';
+    if (fails.length){
+      msg += '<br><span class="warn">有 ' + fails.length + ' 处提示：' +
+             esc(fails.slice(0, 3).join('；')) + (fails.length > 3 ? ' 等' : '') + '</span>';
+    }
+    setStatus(msg);
+  } catch(err){
+    setStatus('<span class="err">批量处理失败：' + esc(err.message || String(err)) + '</span>');
+  } finally {
+    $('bar').classList.remove('on');
+    updateGo();
+  }
+}
+
+async function generate(){
+  var opts = {
+    fit: getFit(),
+    pad: $('padColor').value,
+    quality: Math.min(100, Math.max(60, parseInt($('quality').value, 10) || 92)),
+    symbol: $('symbolFont').checked
+  };
+
+  var btn = $('btnGo');
+  btn.disabled = true;
+  $('bar').classList.add('on');
+  var warns = [];
+  var mediaDone = 0, fontDone = 0, yearDone = 0, textDone = 0, colorDone = 0;
+
+  try{
+    var entries = S.entries, i;
+
+    /* ---- 图片 ---- */
+    for (i = 0; i < S.media.length; i++){
+      var m = S.media[i];
+      if (!m.replacement) continue;
+      setStatus('正在处理图片 ' + (mediaDone + 1) + ' / ' +
+                S.media.filter(function(x){ return x.replacement; }).length + '…');
+      try{
+        var blob = await renderReplacement(m.replacement, m.w, m.h,
+                        {fit:opts.fit, pad:opts.pad, quality:opts.quality, ext:m.ext});
+        var imgBytes = new Uint8Array(await blob.arrayBuffer());
+        var en = S.byName[m.name];
+        en.data = imgBytes;
+        en.dirty = true;
+        mediaDone++;
+      } catch(err){
+        warns.push(m.base + '：' + err.message);
+      }
+    }
+
+    /* ---- 文字：字体 + 年份 ---- */
+    var map = {};
+    S.fonts.forEach(function(f){
+      if (f.target.trim()) map[f.name.trim().toLowerCase()] = f.target.trim();
+    });
+    var hasFont = Object.keys(map).length > 0;
+
+    var yearMapper = null;
+    if (S.yearStats && S.yearStats.total){
+      if (S.yearMode === 'random'){
+        yearMapper = function(y){ return S.yearMap[y] || y; };
+      } else if (S.yearMode === 'fixed'){
+        var fy = String(parseInt($('yearFixed').value, 10) || '');
+        if (fy) yearMapper = function(){ return fy; };
+      }
+    }
+
+    var textRules = S.textRules.filter(function(r){ return r.from.trim(); })
+      .map(function(r){ return {from:r.from.trim(), to:(r.to||'')}; });
+    var colorMap = {};
+    if (S.colors) S.colors.forEach(function(c){ if (c.to.trim()) colorMap[c.hex] = c.to.trim().replace(/^#/, '').toUpperCase(); });
+
+    if (hasFont || yearMapper || textRules.length || Object.keys(colorMap).length){
+      setStatus('正在改写文字…');
+      var xmlEntries = entries.filter(function(x){
+        return x.name.indexOf('ppt/') === 0 && /\.xml$/i.test(x.name) && x.text;
+      });
+      for (i = 0; i < xmlEntries.length; i++){
+        var xe = xmlEntries[i];
+        var workText = xe.text, fc = 0, yc = 0, tc = 0, cc = 0, rr;
+        if (hasFont){
+          rr = applyFonts(workText, map, opts.symbol);
+          workText = rr.text; fc = rr.changed;
+        }
+        if (yearMapper){
+          rr = applyYears(workText, yearMapper);
+          workText = rr.text; yc = rr.count;
+        }
+        if (textRules.length){
+          rr = applyTextReplace(workText, textRules, $('caseSensitive').checked);
+          workText = rr.text; tc = rr.count;
+        }
+        if (Object.keys(colorMap).length){
+          rr = applyColors(workText, colorMap);
+          workText = rr.text; cc = rr.count;
+        }
+        if (!fc && !yc && !tc && !cc) continue;
+
+        var doc = new DOMParser().parseFromString(workText, 'application/xml');
+        if (doc.getElementsByTagName('parsererror').length){
+          throw new Error('改写后 ' + xe.name + ' 的 XML 校验未通过，已中止，未生成文件');
+        }
+
+        var newBytes = new TextEncoder().encode(workText);
+        if (xe.bom){
+          var withBom = new Uint8Array(newBytes.length + 3);
+          withBom[0] = 0xEF; withBom[1] = 0xBB; withBom[2] = 0xBF;
+          withBom.set(newBytes, 3);
+          newBytes = withBom;
+        }
+        xe.data = newBytes;
+        xe.dirty = true;
+        fontDone += fc;
+        yearDone += yc;
+        textDone += tc;
+        colorDone += cc;
+      }
+    }
+
+    /* ---- 打包 ---- */
+    setStatus('正在打包新文件…');
+    var outBlob = await writeZip(entries);
+
+    /* 打包后重新解析一遍，确认结构完整 */
+    var verify = await readZip(await outBlob.arrayBuffer());
+    if (verify.length !== entries.length){
+      throw new Error('生成的压缩包条目数不一致（' + verify.length + ' / ' + entries.length + '），已中止');
+    }
+    for (i = 0; i < verify.length; i++){
+      if (verify[i].name !== entries[i].name) throw new Error('压缩包条目顺序错乱，已中止');
+    }
+
+    var outName = S.name.replace(/\.pptx$/i, '') + '_替换.pptx';
+    var url = URL.createObjectURL(outBlob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = outName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+
+    var msg = '<span class="ok">完成：</span>替换了 ' + mediaDone + ' 张图片、' + fontDone + ' 处字体、' + yearDone + ' 处年份、' + textDone + ' 段文本、' + colorDone + ' 处颜色，已生成 <b>' + esc(outName) + '</b>（' + fmtSize(outBlob.size) + '）。';
+    if (warns.length){
+      msg += '<br><span class="warn">有 ' + warns.length + ' 张图未能替换：' + esc(warns.slice(0, 3).join('；')) + (warns.length > 3 ? ' 等' : '') + '</span>';
+    }
+    setStatus(msg);
+  } catch(err){
+    setStatus('<span class="err">处理失败：' + esc(err.message || String(err)) + '</span>');
+  } finally {
+    $('bar').classList.remove('on');
+    btn.disabled = false;
+    updateGo();
+  }
+}
+
+/* ==================================================================
+   交互
+   ================================================================== */
+var imgInput = document.createElement('input');
+imgInput.type = 'file';
+imgInput.accept = 'image/png,image/jpeg,image/gif,image/bmp,image/webp,image/*';
+imgInput.style.display = 'none';
+document.body.appendChild(imgInput);
+
+function resetAll(){
+  S.file = null; S.name = ''; S.entries = null; S.byName = null;
+  S.media = []; S.fonts = []; S.slides = 0; S.materials = [];
+  S.yearMode = 'off'; S.yearMap = {}; S.yearStats = {counts:{}, total:0};
+  S.textRules = []; S.colors = []; S.colorMap = {}; S.textSegs = 0;
+  $('fileInfo').classList.remove('on');
+  $('mediaCard').hidden = true;
+  $('fontCard').hidden = true;
+  $('yearCard').hidden = true;
+  $('textCard').hidden = true;
+  $('colorCard').hidden = true;
+  $('optCard').hidden = true;
+  $('mediaList').innerHTML = '';
+  $('fontList').innerHTML = '';
+  $('matChips').hidden = true;
+  $('matChips').innerHTML = '';
+  $('btnReassign').hidden = true;
+  $('fileInput').value = '';
+  $('btnGo').disabled = true;
+  $('bar').classList.remove('on');
+  setStatus('先选一份 PPT 文件。');
+}
+
+/* 拖放 */
+var drop = $('drop');
+['dragenter', 'dragover'].forEach(function(ev){
+  drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+});
+['dragleave', 'dragend'].forEach(function(ev){
+  drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+});
+drop.addEventListener('drop', function(e){
+  e.preventDefault();
+  drop.classList.remove('over');
+  var fs = e.dataTransfer && e.dataTransfer.files;
+  if (!fs || !fs.length) return;
+  if (S.batch) addBatchFiles(Array.prototype.slice.call(fs));
+  else loadFile(fs[0]);
+});
+drop.addEventListener('click', function(){
+  if (S.batch) $('batchInput').click();
+  else $('fileInput').click();
+});
+$('fileInput').addEventListener('change', function(e){
+  if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+});
+$('btnClear').addEventListener('click', function(e){
+  e.stopPropagation();
+  resetAll();
+});
+
+/* ==================================================================
+   批量模式
+   ================================================================== */
+function setMode(batch){
+  S.batch = !!batch;
+  $('batchCard').hidden = !S.batch;
+  $('fileInfo').classList.toggle('on', !S.batch && !!S.file);
+  $('dropTip').innerHTML = S.batch
+    ? '或 <em>点击选择多份文件</em>（也可一次拖入多个）'
+    : '或 <em>点击选择文件</em>';
+  if (S.batch){
+    $('mediaCard').hidden = true;
+    $('fontCard').hidden = true;
+    $('yearCard').hidden = true;
+    $('textCard').hidden = true;
+    $('colorCard').hidden = true;
+    $('optCard').hidden = false;
+  } else {
+    var has = !!S.entries;
+    $('mediaCard').hidden = !has;
+    $('fontCard').hidden = !has;
+    $('yearCard').hidden = !has;
+    $('textCard').hidden = !has;
+    $('colorCard').hidden = !has;
+    $('optCard').hidden = !has;
+  }
+  $('btnGo').textContent = S.batch ? '批量生成新文件' : '生成新文件';
+  renderBatchFiles();
+  updateGo();
+}
+
+function renderBatchFiles(){
+  var n = S.batchFiles.length, box = $('batchList');
+  $('batchInfo').classList.toggle('on', S.batch && n > 0);
+  $('batchName').textContent = n ? ('已选 ' + n + ' 份 PPT，输出打包成一个 zip') : '';
+  var html = '';
+  S.batchFiles.forEach(function(f, i){
+    html += '<em>' + (i + 1) + '. ' + esc(f.name) + '</em>';
+  });
+  box.innerHTML = html;
+}
+
+function addBatchFiles(list){
+  var ok = [], skipped = 0, i;
+  for (i = 0; i < list.length; i++){
+    var f = list[i];
+    if (!/\.pptx$/i.test(f.name) || /_替换\.pptx$/i.test(f.name)){ skipped++; continue; }
+    var dup = S.batchFiles.some(function(x){ return x.name === f.name && x.size === f.size; });
+    if (!dup) ok.push(f);
+  }
+  S.batchFiles = S.batchFiles.concat(ok);
+  renderBatchFiles();
+  updateGo();
+  if (skipped){
+    setStatus('<span class="warn">已跳过 ' + skipped + ' 个非 .pptx 或已替换过的文件。</span>');
+  } else if (ok.length){
+    setStatus('已加入 ' + ok.length + ' 份，共 ' + S.batchFiles.length + ' 份。设置规则后点「批量生成新文件」。');
+  }
+}
+
+$('modeSingle').addEventListener('change', function(){ if (this.checked) setMode(false); });
+$('modeBatch').addEventListener('change', function(){ if (this.checked) setMode(true); });
+$('batchInput').addEventListener('change', function(e){
+  addBatchFiles(Array.prototype.slice.call(e.target.files || []));
+  e.target.value = '';
+});
+$('btnBatchReset').addEventListener('click', function(e){
+  e.stopPropagation();
+  S.batchFiles = [];
+  renderBatchFiles();
+  updateGo();
+});
+
+/* 批量素材 */
+var batchMediaInput = document.createElement('input');
+batchMediaInput.type = 'file';
+batchMediaInput.multiple = true;
+batchMediaInput.accept = 'image/*';
+batchMediaInput.style.display = 'none';
+document.body.appendChild(batchMediaInput);
+
+var batchMatUrls = [];
+function renderBatchChips(){
+  var box = $('batchChips');
+  batchMatUrls.forEach(function(u){ URL.revokeObjectURL(u); });
+  batchMatUrls = [];
+  if (!S.batchMaterials.length){
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  var html = '';
+  S.batchMaterials.forEach(function(f, i){
+    var u = URL.createObjectURL(f);
+    batchMatUrls.push(u);
+    html += '<span class="chip"><img alt="" src="' + u + '"><span>' + (i + 1) + '. ' + esc(f.name) + '</span></span>';
+  });
+  box.innerHTML = html;
+  box.hidden = false;
+}
+
+$('btnBatchMedia').addEventListener('click', function(){
+  batchMediaInput.value = '';
+  batchMediaInput.click();
+});
+batchMediaInput.addEventListener('change', function(e){
+  var fs = e.target.files ? Array.prototype.slice.call(e.target.files) : [];
+  if (!fs.length) return;
+  S.batchMaterials = fs;
+  renderBatchChips();
+  setStatus('素材 ' + fs.length + ' 张，每份 PPT 里的图片都会按所选方式分配。');
+});
+$('btnBatchMediaClear').addEventListener('click', function(){
+  S.batchMaterials = [];
+  renderBatchChips();
+});
+
+['bymOff', 'bymRand', 'bymFix'].forEach(function(id){
+  $(id).addEventListener('change', function(){
+    var el = document.querySelector('input[name="bymode"]:checked');
+    $('bYear').disabled = !el || el.value !== 'fixed';
+  });
+});
+
+/* 图片选择 */
+$('mediaList').addEventListener('click', function(e){
+  var t = e.target.closest('[data-pick]');
+  if (t){
+    S.pending = parseInt(t.getAttribute('data-pick'), 10);
+    imgInput.value = '';
+    imgInput.click();
+    return;
+  }
+  var u = e.target.closest('[data-unpick]');
+  if (u){
+    S.media[parseInt(u.getAttribute('data-unpick'), 10)].replacement = null;
+    renderMedia();
+    updateGo();
+  }
+});
+
+$('btnAllMedia').addEventListener('click', function(){
+  var usable = S.media.filter(function(m){ return m.ok; });
+  if (!usable.length){ setStatus('<span class="warn">没有可替换的图片。</span>'); return; }
+  S.pending = 'all';
+  imgInput.value = '';
+  imgInput.click();
+});
+
+imgInput.addEventListener('change', function(e){
+  var f = e.target.files && e.target.files[0];
+  if (!f) return;
+  if (S.pending === 'all'){
+    S.media.forEach(function(m){ if (m.ok) m.replacement = f; });
+  } else if (typeof S.pending === 'number'){
+    var item = S.media[S.pending];
+    if (item && item.ok) item.replacement = f;
+  }
+  S.pending = null;
+  renderMedia();
+  updateGo();
+});
+
+$('btnResetMedia').addEventListener('click', function(){
+  S.media.forEach(function(m){ m.replacement = null; });
+  S.materials = [];
+  renderMaterials();
+  renderMedia();
+  updateGo();
+});
+
+/* ---- 多张素材批量替换 ---- */
+var multiInput = document.createElement('input');
+multiInput.type = 'file';
+multiInput.multiple = true;
+multiInput.accept = 'image/*';
+multiInput.style.display = 'none';
+document.body.appendChild(multiInput);
+
+var matUrls = [];
+function renderMaterials(){
+  var box = $('matChips');
+  matUrls.forEach(function(u){ URL.revokeObjectURL(u); });
+  matUrls = [];
+  if (!S.materials.length){
+    box.hidden = true;
+    box.innerHTML = '';
+    $('btnReassign').hidden = true;
+    return;
+  }
+  var html = '<span class="chip" style="border:0;background:transparent;padding:0 4px;color:#8a9099">素材 ' + S.materials.length + ' 张：</span>';
+  S.materials.forEach(function(f, i){
+    var u = URL.createObjectURL(f);
+    matUrls.push(u);
+    html += '<span class="chip"><img alt="" src="' + u + '"><span>' + (i + 1) + '. ' + esc(f.name) + '</span></span>';
+  });
+  box.innerHTML = html;
+  box.hidden = false;
+  $('btnReassign').hidden = false;
+}
+
+function assignBulk(){
+  var mats = S.materials;
+  if (!mats.length) return;
+  var mode = $('assignMode').value;
+  var k = 0, used = 0;
+  S.media.forEach(function(m){
+    if (!m.ok) return;
+    var i;
+    if (mode === 'random'){
+      i = Math.floor(Math.random() * mats.length);
+    } else {
+      i = k % mats.length;
+      k++;
+    }
+    m.replacement = mats[i];
+    used++;
+  });
+  renderMedia();
+  updateGo();
+  setStatus(mode === 'random'
+    ? ('已把 ' + mats.length + ' 张素材随机分配到 ' + used + ' 张图片。不满意可点「重新分配」。')
+    : ('已把 ' + mats.length + ' 张素材按轮换分配给 ' + used + ' 张图片。'));
+}
+
+$('btnMultiMedia').addEventListener('click', function(){
+  var usable = S.media.filter(function(m){ return m.ok; });
+  if (!usable.length){ setStatus('<span class="warn">没有可替换的图片。</span>'); return; }
+  multiInput.value = '';
+  multiInput.click();
+});
+
+multiInput.addEventListener('change', function(e){
+  var files = e.target.files ? Array.prototype.slice.call(e.target.files) : [];
+  if (!files.length) return;
+  S.materials = files;
+  renderMaterials();
+  assignBulk();
+});
+
+$('btnReassign').addEventListener('click', assignBulk);
+$('assignMode').addEventListener('change', function(){
+  if (S.materials.length) assignBulk();
+});
+
+/* 年份 */
+function onYearMode(){
+  var el = document.querySelector('input[name="ymode"]:checked');
+  S.yearMode = el ? el.value : 'off';
+  $('yearFixed').disabled = (S.yearMode !== 'fixed');
+  if (S.yearMode === 'random') S.yearMap = buildYearMap();
+  else if (S.yearMode === 'off') S.yearMap = {};
+  renderYears();
+  updateGo();
+}
+['ymOff', 'ymRand', 'ymFix'].forEach(function(id){
+  $(id).addEventListener('change', onYearMode);
+});
+$('yearFixed').addEventListener('input', function(){
+  if (S.yearMode === 'fixed'){ renderYears(); updateGo(); }
+});
+$('btnReroll').addEventListener('click', function(){
+  S.yearMap = buildYearMap();
+  renderYears();
+});
+
+/* 字体选择 */
+$('fontList').addEventListener('change', function(e){
+  var t = e.target;
+  if (!t.hasAttribute('data-font')) return;
+  var idx = parseInt(t.getAttribute('data-font'), 10);
+  if (t.value === '__custom'){
+    S.fonts[idx].target = S.fonts[idx].custom || '';
+    renderFonts();
+    var inp = document.querySelector('[data-custom="' + idx + '"]');
+    if (inp) inp.focus();
+    updateGo();
+    return;
+  }
+  S.fonts[idx].target = t.value;
+  renderFonts();
+  updateGo();
+});
+
+$('fontList').addEventListener('input', function(e){
+  var t = e.target;
+  if (!t.hasAttribute('data-custom')) return;
+  var idx = parseInt(t.getAttribute('data-custom'), 10);
+  S.fonts[idx].custom = t.value;
+  S.fonts[idx].target = t.value;
+  updateFontHint();
+  updateGo();
+});
+
+$('btnAllSans').addEventListener('click', function(){
+  setAllFonts(function(){ return '思源黑体 CN'; });
+});
+$('btnAllSerif').addEventListener('click', function(){
+  setAllFonts(function(){ return '思源宋体 CN'; });
+});
+$('btnSmart').addEventListener('click', function(){
+  setAllFonts(smartTargets);
+  var miss = S.fonts.filter(function(f){ return !f.target; }).length;
+  if (miss) setStatus('<span class="warn">有 ' + miss + ' 种字体判断不出该用黑体还是宋体，请手动填写。</span>');
+  else setStatus('已按「标题黑体 / 正文宋体」自动填充，可以再手动微调。');
+});
+$('btnResetFont').addEventListener('click', function(){
+  setAllFonts(function(){ return ''; });
+});
+
+/* 文本规则 */
+$('btnAddRule').addEventListener('click', function(){
+  S.textRules.push({from:'', to:''});
+  renderTexts();
+  var inputs = document.querySelectorAll('#textRuleList .tr[data-role="from"]');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+  updateGo();
+});
+$('btnClearRules').addEventListener('click', function(){
+  S.textRules = [];
+  renderTexts();
+  updateGo();
+});
+$('textRuleList').addEventListener('input', function(e){
+  var t = e.target;
+  if (!t.hasAttribute('data-idx')) return;
+  var idx = parseInt(t.getAttribute('data-idx'), 10);
+  var role = t.getAttribute('data-role');
+  if (role === 'from') S.textRules[idx].from = t.value;
+  else if (role === 'to') S.textRules[idx].to = t.value;
+  updateGo();
+});
+$('textRuleList').addEventListener('click', function(e){
+  var t = e.target.closest('[data-delrule]');
+  if (!t) return;
+  S.textRules.splice(parseInt(t.getAttribute('data-delrule'), 10), 1);
+  renderTexts();
+  updateGo();
+});
+
+/* 颜色 */
+$('colorList').addEventListener('input', function(e){
+  var t = e.target;
+  if (!t.classList.contains('co')) return;
+  var idx = parseInt(t.getAttribute('data-color'), 10);
+  S.colors[idx].to = t.value;
+  updateColorHint();
+  updateGo();
+});
+
+/* 主题切换 */
+$('btnTheme').addEventListener('click', function(){
+  var dark = document.body.classList.toggle('dark');
+  this.textContent = dark ? '☀️ 亮色' : '🌙 暗色';
+  try { localStorage.setItem('pptTheme', dark ? 'dark' : 'light'); } catch(e){}
+});
+try { if (localStorage.getItem('pptTheme') === 'dark'){ document.body.classList.add('dark'); var tb = $('btnTheme'); if (tb) tb.textContent = '☀️ 亮色'; } } catch(e){}
+
+/* 生成 */
+$('btnGo').addEventListener('click', function(){
+  if (S.batch) generateBatch();
+  else generate();
+});
+
+/* 启动检查 */
+if (!window.CompressionStream || !window.DecompressionStream || !window.createImageBitmap){
+  $('sysAlert').classList.add('on');
+  $('btnGo').disabled = true;
+  setStatus('<span class="err">当前浏览器缺少所需能力，请用 Chrome 或 Edge 打开本文件。</span>');
+}
+
+})();
+</script>
+</body>
+</html>

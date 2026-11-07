@@ -1,8 +1,9 @@
 ---
 name: ppt-asset-replacer
 display_name: PPT图片字体批量替换
+display_name_en: PPT Image and Font Batch Replacer
 description: 当用户需要批量替换 PPT（.pptx）里的图片、统一或更换字体、替换年份、批量替换文字（如公司名/产品名/联系方式）、或修改主题配色时使用。触发词：替换PPT图片、统一字体、PPT字体替换、批量改PPT、换PPT里的图、PPT年份替换、PPT文字替换、PPT配色、把PPT字体改成思源黑体、批量处理PPT、PPT素材替换、PPT批量改字。
-description_en: Use this skill when a user wants to batch-replace images, unify or change fonts, replace years, bulk-replace text (company/product names, contact info), or modify theme colors in a PowerPoint (.pptx) file. Triggers: replace PPT images, change PPT font, unify font, batch edit PPT, swap picture in PPT, PPT year replace, PPT text replace, PPT color theme, convert PPT font to Source Han Sans, batch process PPT, PPT asset replace.
+description_en: Use this skill when a user wants to batch-replace images, unify or change fonts, replace years, bulk-replace text (company/product names, contact info), or modify theme colors in a PowerPoint (.pptx) file. Trigger keywords include replace PPT images, change PPT font, unify font, batch edit PPT, swap picture in PPT, PPT year replace, PPT text replace, PPT color theme, convert PPT font to Source Han Sans, batch process PPT, PPT asset replace.
 description_zh: PPT（.pptx）图片、字体、年份、文字、配色的批量替换与统一工具。支持单份与批量处理，全程本地运行不联网。触发场景：批量替换 PPT 图片或素材、统一/更改字体（如转思源黑体/宋体/微软雅黑）、替换年份、批量改写文字（公司名/产品名/联系方式）、修改主题配色。
 version: 1.0.0
 author: 波段诗人
